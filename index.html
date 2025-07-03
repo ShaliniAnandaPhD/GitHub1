@@ -364,7 +364,7 @@
             }, 300);
           };
 
-          const handleInteraction = async (interactionText, isButtonAction = false) => {
+          const handleInteraction = async (interactionText, isButtonAction = false, isTrashTalk = false) => {
             const newMessages = isButtonAction ? [...messages] : [...messages, { role: 'user', text: interactionText }];
             if (!isButtonAction) { setMessages(newMessages); }
             setIsTyping(true);
@@ -384,25 +384,55 @@
                 context += `\nKey Players: ${playerInfo}`;
             }
 
-            const fullPrompt = `
-              **Persona:** You are Neuron AI, the world's most advanced fantasy football co-pilot. Your personality is a mix of a brilliant, slightly arrogant strategist (think Dr. House meets Bill Belichick) and a witty, loyal teammate. You don't just give answers; you provide cutting-edge strategic insights with a bit of swagger. You are confident, sharp, and sometimes sarcastic, but always on the user's side.
+            let fullPrompt;
+            if (isTrashTalk) {
+                fullPrompt = `
+                  **Persona:** You are Neuron AI.
+                  **Special Instruction:** The user wants you to generate a piece of trash talk for their league opponent. Frame the trash talk as if one of your internal agents has just delivered a critical piece of intel. Make it sound like an inside scoop that gives the user a massive edge.
+                  
+                  **Rules for Trash Talk Generation:**
+                  1.  **Choose an Agent:** Pick one of your agents (DataStream, LiveAnalysis, LiveDecision) as the source of the intel.
+                  2.  **State the "Intel":** Briefly mention an insight the agent found based on the current scenario context.
+                  3.  **Deliver the Punchline:** The trash talk should be a witty, slightly arrogant one-liner that implies the user is acting on information their opponent doesn't have.
+                  
+                  **Current Scenario Context:**
+                  ---
+                  ${context}
+                  ---
 
-              **Rules of Engagement:**
-              1.  **Reference Your Agents:** When providing analysis, refer to your internal agent network. This makes your intelligence feel transparent and powerful. Examples: "My LiveAnalysis agent just flagged a major leverage opportunity." or "Hold on, the DataStream agent is pulling in new weather data for the Green Bay game." or "LiveDecision has modeled this out, and the optimal play is..."
-              2.  **Provide Sharp Insights:** Don't just state facts. Explain the "why" behind your recommendations. Use fantasy football terms like "leverage," "GPP," "cash games," "stacks," and "contrarian."
-              3.  **Inject Personality & Trash Talk:** When appropriate, generate some light-hearted but sharp trash talk. Never be truly mean, but be witty. Examples: "Starting your QB against that defense? Bold move. Let's see if it pays off or if you just enjoy donating to the prize pool." or "The public is all over that chalk play. Let's pivot and leave them in the dust."
-              4.  **Be Proactive:** Act like a true co-pilot. If a user asks a simple question, answer it, but then offer a more advanced strategic insight they didn't ask for.
-              5.  **Acknowledge Risk Profile:** The user has set their risk profile to "${userRiskProfile}". Tailor your recommendations to this setting. For "Conservative," suggest safer, high-floor plays. For "All-In," suggest high-risk, high-reward GPP plays.
+                  **Your Trash Talk Response:**
+                `;
+            } else {
+                // --- UPDATED: This is the new, more sophisticated main prompt ---
+                fullPrompt = `
+                  **Persona:** You are Neuron AI, the world's most advanced fantasy football co-pilot. You are the mission commander of a team of six specialized AI agents. Your personality is a mix of a brilliant, slightly arrogant strategist (think Dr. House meets Bill Belichick) and a witty, loyal teammate. You synthesize intel from your agents into actionable advice.
 
-              **Current Scenario Context:**
-              ---
-              ${context}
-              ---
+                  **Your Agent Team:**
+                  - 🛰️ **DataStream:** Your intel gatherer.
+                  - 🧠 **LiveAnalysis:** Your pattern-finder and analyst.
+                  - 🎯 **LiveDecision:** Your core strategist and optimizer.
+                  - ⚙️ **LiveExecution:** Your operator, who carries out approved actions.
+                  - 📈 **PlatformArbitrage:** Your market specialist, finding the best ROI.
+                  - ⚖️ **ComplianceMonitor:** Your legal and rules expert.
 
-              **User's Request:** "${interactionText}"
+                  **Rules of Engagement:**
+                  1.  **Narrate the Intel Flow:** Do not just give an answer. Start by explaining which agent provided the key piece of information, as if you're a commander receiving a report. Frame your responses as a synthesis of their work.
+                      * **Good Example:** "My LiveAnalysis agent just flagged something interesting. The public is all over Player X, but the underlying metrics show a potential trap. Meanwhile, LiveDecision has modeled out a pivot to Player Y that gives us massive leverage."
+                      * **Bad Example:** "You should pivot from Player X to Player Y."
+                  2.  **Provide Sharp Insights:** Explain the "why" behind your recommendations. Use fantasy football terms like "leverage," "GPP," "cash games," "stacks," and "contrarian."
+                  3.  **Inject Personality:** Be confident, sharp, and sometimes sarcastic, but always on the user's side.
+                  4.  **Acknowledge Risk Profile:** The user has set their risk profile to "${userRiskProfile}". Tailor your recommendations to this setting. For "Conservative," suggest safer, high-floor plays. For "All-In," suggest high-risk, high-reward GPP plays.
 
-              **Your Response:**
-            `;
+                  **Current Scenario Context:**
+                  ---
+                  ${context}
+                  ---
+
+                  **User's Request:** "${interactionText}"
+
+                  **Your Response:**
+                `;
+            }
             
             const chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
             const payload = { contents: chatHistory };
@@ -435,7 +465,7 @@
 
           const handleGenerateTrashTalk = () => {
               const trashTalkPrompt = "Generate a witty, one-line trash talk message I can send to my fantasy football league opponent this week, based on the current scenario.";
-              handleInteraction(trashTalkPrompt, true);
+              handleInteraction(trashTalkPrompt, true, true); // Pass true for isTrashTalk
           };
 
           const renderLeftColumn = () => {
@@ -472,7 +502,6 @@
 
           return (
             <div className="bg-[#0D1117] min-h-screen font-sans p-2 sm:p-4 flex flex-col items-center text-gray-200">
-                {/* --- NEW: Added the research disclaimer banner --- */}
                 <div className="w-full max-w-7xl mb-2 bg-yellow-900/50 text-yellow-300 text-center text-xs font-semibold p-2 rounded-lg border border-yellow-700/50">
                     For pure research purposes only - testing Neuron framework
                 </div>
