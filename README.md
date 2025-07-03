@@ -1,2 +1,1 @@
-# beta_test
-beta test
+github usage files
