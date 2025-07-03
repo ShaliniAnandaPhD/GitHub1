@@ -46,6 +46,7 @@
           target: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
           gauge: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M13.41 10.59l4.24-4.24"/><path d="M7 12h-2"/><path d="M19 12h-2"/></svg>,
           lineChart: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>,
+          skull: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1" /><circle cx="15" cy="12" r="1" /><path d="M8 20v2h8v-2" /><path d="M12.5 17.5c-.5.5-1.5.5-2 0" /><path d="M16 20a4 4 0 0 0-8 0" /><path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5" /></svg>,
         };
 
         const scenarios = {
@@ -56,7 +57,7 @@
                 controls: ["Breaking News", "Injury Pivot", "New Leverage", "Reset"],
                 feed: { icon: icons.zap, title: "BREAKING: Keenan Allen (WR, LAC) UNEXPECTEDLY INACTIVE", description: "31 of your lineups affected. Auto-pivot to rookie Quentin Johnston saves $5,100 per lineup. High-risk, high-reward play with a 79.4 score.", buttons: ["Execute Auto-Pivot (31 lineups)", "Manual Review"] },
                 strategicInsight: { title: "High-Risk Pivot", text: "Pivoting to Quentin Johnston offers massive leverage but low floor. Recommended for GPP/Tournament lineups only." },
-                players: [ { name: "Quentin Johnston - WR, LAC", score: 88, leverage: 92.1, ownership: 1.1, ceiling: 94, value: "+$1,850", note: "High-upside GPP play." }, { name: "Joshua Palmer - WR, LAC", score: 74, leverage: 68.4, ownership: 18.5, ceiling: 77, value: "+$450", note: "Safer cash game pivot." } ],
+                players: [ { name: "Quentin Johnston - WR, LAC", score: 88, tournamentScore: 95, leverage: 92.1, ownership: 1.1, ceiling: 94, value: "+$1,850", note: "High-upside GPP play." }, { name: "Joshua Palmer - WR, LAC", score: 74, tournamentScore: 68, leverage: 68.4, ownership: 18.5, ceiling: 77, value: "+$450", note: "Safer cash game pivot." } ],
                 chat: { initialMessage: "Monday Night Football surprise! I'm re-analyzing all affected lineups. How do you want to handle the Keenan Allen news?", suggestions: ["Best pivot for GPP?", "Safest cash game play?"] },
             },
             2: {
@@ -66,7 +67,7 @@
                 controls: ["Breaking News", "Weather Alert", "New Leverage", "Reset"],
                 feed: { icon: icons.cloudy, title: "WEATHER ALERT: Heavy snow & 25mph winds confirmed in Green Bay.", description: "Downgrading all passing game players for LV @ GB. Upgrading RBs and D/STs. 58 lineups have exposure.", buttons: ["View Affected Players", "Auto-Optimize Portfolio"] },
                 sentiment: { player: "Davante Adams", value: 25, label: "FADE" },
-                players: [ { name: "Josh Jacobs - RB, LV", score: 89, leverage: 81.3, ownership: 19.2, ceiling: 91, value: "+$1,120", note: "Elite play due to weather." }, { name: "Davante Adams - WR, LV", score: 41, leverage: 25.5, ownership: 24.8, ceiling: 56, value: "-$880", note: "High-risk fade candidate." } ],
+                players: [ { name: "Josh Jacobs - RB, LV", score: 89, tournamentScore: 82, leverage: 81.3, ownership: 19.2, ceiling: 91, value: "+$1,120", note: "Elite play due to weather." }, { name: "Davante Adams - WR, LV", score: 41, tournamentScore: 35, leverage: 25.5, ownership: 24.8, ceiling: 56, value: "-$880", note: "High-risk fade candidate." } ],
                 chat: { initialMessage: "The weather in Green Bay is a major factor. I've downgraded passing projections by 40%. Are you ready to pivot?", suggestions: ["Who benefits most?", "Show me fade candidates."] },
             },
             3: {
@@ -76,7 +77,7 @@
                 controls: ["Breaking News", "Weather Alert", "New Leverage", "Reset"],
                 feed: { icon: icons.trendingUp, title: "LEVERAGE ALERT: Tank Dell ownership is inexplicably low (<2%).", description: "He is in an elite matchup and projects as a top-5 value. Perfect GPP tournament play to differentiate your lineups.", buttons: ["Increase Exposure", "Analyze Matchup"] },
                 strategicInsight: { title: "GPP-Winning Play", text: "Tank Dell's combination of low ownership and high ceiling presents a rare opportunity to gain significant ground on the field in large tournaments." },
-                players: [ { name: "Tank Dell - WR, HOU", score: 94, leverage: 95.8, ownership: 1.9, ceiling: 96, value: "+$2,100", note: "Elite GPP tournament play." }, { name: "CeeDee Lamb - WR, DAL", score: 65, leverage: 40.1, ownership: 38.7, ceiling: 92, value: "-$250", note: "High ownership 'chalk' play." } ],
+                players: [ { name: "Tank Dell - WR, HOU", score: 94, tournamentScore: 98, leverage: 95.8, ownership: 1.9, ceiling: 96, value: "+$2,100", note: "Elite GPP tournament play." }, { name: "CeeDee Lamb - WR, DAL", score: 65, tournamentScore: 60, leverage: 40.1, ownership: 38.7, ceiling: 92, value: "-$250", note: "High ownership 'chalk' play." } ],
                 chat: { initialMessage: "I've identified a massive leverage opportunity with Tank Dell. This is the kind of play that wins tournaments. How much exposure should we add?", suggestions: ["Build 10 lineups with Dell.", "Why is he low-owned?"] },
             },
             4: {
@@ -202,11 +203,10 @@
         const PlayerCard = ({ data }) => (
           <div className="p-4 border-b border-cyan-900/50">
             <div className="flex justify-between items-start mb-3"><h4 className="font-bold text-white">{data.name}</h4><span className="text-xl font-bold text-cyan-300">{data.score}%</span></div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              <div><div className="flex justify-between text-gray-400 mb-1"><span>Leverage Score</span><strong className="text-white">{data.leverage}</strong></div><StatBar value={data.leverage} colorClass="bg-green-500" /></div>
-              <div><div className="flex justify-between text-gray-400 mb-1"><span>Ceiling Rank</span><strong className="text-white">{data.ceiling}th %ile</strong></div><StatBar value={data.ceiling} colorClass="bg-purple-500" /></div>
+            <div className="grid grid-cols-3 gap-x-4 gap-y-3 text-sm">
+              <div><div className="flex justify-between text-gray-400 mb-1"><span>Leverage</span><strong className="text-white">{data.leverage}</strong></div><StatBar value={data.leverage} colorClass="bg-green-500" /></div>
               <div><div className="flex justify-between text-gray-400 mb-1"><span>Ownership</span><strong className="text-white">{data.ownership}%</strong></div><StatBar value={data.ownership} colorClass={data.ownership < 10 ? 'bg-cyan-500' : 'bg-orange-500'} /></div>
-              <div><div className="flex justify-between text-gray-400 mb-1"><span>Alpha Projection</span><strong className="text-green-400">{data.value}</strong></div><div className="w-full bg-gray-700 rounded-full h-1.5"></div></div>
+              <div><div className="flex justify-between text-gray-400 mb-1"><span>Tourney Score</span><strong className="text-white">{data.tournamentScore}</strong></div><StatBar value={data.tournamentScore} colorClass="bg-purple-500" /></div>
             </div>
             <p className="text-sm text-cyan-200/70 italic mt-3 flex items-center gap-2"><span className="w-4 h-4">{icons.sparkles}</span>Strategic Insight: {data.note}</p>
           </div>
@@ -263,7 +263,38 @@
             </div>
         );
         
-        const Chat = ({ messages, suggestions, onSendMessage, isTyping }) => {
+        const RiskProfile = ({ risk, setRisk }) => {
+            const labels = ["Conservative", "Balanced", "Aggressive", "All-In"];
+            return (
+                <div className="p-4 bg-black/20 border-b border-cyan-900/50">
+                    <label htmlFor="risk-slider" className="block text-sm font-medium text-white mb-2">Your Risk Profile: <span className="font-bold text-cyan-400">{labels[risk]}</span></label>
+                    <input
+                        id="risk-slider"
+                        type="range"
+                        min="0"
+                        max="3"
+                        value={risk}
+                        onChange={(e) => setRisk(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                </div>
+            );
+        };
+        
+        const TrashTalkGenerator = ({ onGenerate }) => {
+            return (
+                <div className="p-4">
+                    <button 
+                        onClick={onGenerate}
+                        className="w-full bg-red-800/50 hover:bg-red-700/50 border border-red-600/50 text-red-300 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200">
+                        <span className="w-5 h-5">{icons.skull}</span>
+                        Generate Trash Talk
+                    </button>
+                </div>
+            )
+        }
+
+        const Chat = ({ messages, suggestions, onSendMessage, isTyping, risk, setRisk, onGenerateTrashTalk }) => {
           const [userInput, setUserInput] = useState('');
           const chatEndRef = useRef(null);
           useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isTyping]);
@@ -271,9 +302,10 @@
           const handleSuggestionClick = (suggestion) => { onSendMessage(suggestion); }
           return (
             <div className="p-4 flex-grow flex flex-col bg-gray-900/50 h-full">
-              <div className="flex-grow overflow-y-auto pr-2" style={{maxHeight: 'calc(100vh - 200px)'}}>
+              <RiskProfile risk={risk} setRisk={setRisk} />
+              <div className="flex-grow overflow-y-auto pr-2" style={{maxHeight: 'calc(100vh - 350px)'}}>
                 {messages.map((msg, index) => (
-                  <div key={index} className={`mb-4 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div key={index} className={`my-4 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.role === 'user' ? 'bg-cyan-800 text-white' : 'bg-black/20 border border-cyan-900/30 text-white'}`}>
                       <p className="text-sm font-semibold mb-1">{msg.role === 'user' ? 'You' : 'Neuron AI'}</p>
                       <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
@@ -281,7 +313,7 @@
                   </div>
                 ))}
                 {isTyping && (
-                   <div className="mb-4 flex justify-start">
+                   <div className="my-4 flex justify-start">
                      <div className="p-3 rounded-lg bg-black/20 border border-cyan-900/30 text-white">
                        <p className="text-sm font-semibold mb-1">Neuron AI</p>
                        <div className="flex items-center gap-2">
@@ -303,6 +335,7 @@
                 <input type="text" placeholder="Engage with Neuron AI..." className="bg-transparent w-full text-white placeholder-gray-500 focus:outline-none px-2" value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} />
                 <button onClick={handleSend} disabled={isTyping} className="bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-md transition-colors duration-200 disabled:bg-gray-600"><span className="w-5 h-5">{icons.send}</span></button>
               </div>
+              <TrashTalkGenerator onGenerate={onGenerateTrashTalk} />
             </div>
           );
         };
@@ -312,6 +345,7 @@
           const [isTransitioning, setIsTransitioning] = useState(false);
           const [messages, setMessages] = useState([]);
           const [isTyping, setIsTyping] = useState(false);
+          const [risk, setRisk] = useState(1); // 0: Conservative, 1: Balanced, 2: Aggressive, 3: All-In
 
           const currentScenario = scenarios[scenarioId];
           const statusColor = currentScenario.header.status === 'HITL Mode Active' ? 'bg-yellow-500' : 'bg-green-500';
@@ -335,7 +369,9 @@
             if (!isButtonAction) { setMessages(newMessages); }
             setIsTyping(true);
             
-            // --- UPDATED: New, more sophisticated prompt with personality ---
+            const riskLabels = ["Conservative", "Balanced", "Aggressive", "All-In"];
+            const userRiskProfile = riskLabels[risk];
+
             let context = `Title: ${currentScenario.title}\nStatus: ${currentScenario.header.status}`;
             if (currentScenario.feed) {
                 context += `\nAlert: ${currentScenario.feed.title} - ${currentScenario.feed.description}`;
@@ -356,6 +392,7 @@
               2.  **Provide Sharp Insights:** Don't just state facts. Explain the "why" behind your recommendations. Use fantasy football terms like "leverage," "GPP," "cash games," "stacks," and "contrarian."
               3.  **Inject Personality & Trash Talk:** When appropriate, generate some light-hearted but sharp trash talk. Never be truly mean, but be witty. Examples: "Starting your QB against that defense? Bold move. Let's see if it pays off or if you just enjoy donating to the prize pool." or "The public is all over that chalk play. Let's pivot and leave them in the dust."
               4.  **Be Proactive:** Act like a true co-pilot. If a user asks a simple question, answer it, but then offer a more advanced strategic insight they didn't ask for.
+              5.  **Acknowledge Risk Profile:** The user has set their risk profile to "${userRiskProfile}". Tailor your recommendations to this setting. For "Conservative," suggest safer, high-floor plays. For "All-In," suggest high-risk, high-reward GPP plays.
 
               **Current Scenario Context:**
               ---
@@ -396,6 +433,11 @@
             }
           };
 
+          const handleGenerateTrashTalk = () => {
+              const trashTalkPrompt = "Generate a witty, one-line trash talk message I can send to my fantasy football league opponent this week, based on the current scenario.";
+              handleInteraction(trashTalkPrompt, true);
+          };
+
           const renderLeftColumn = () => {
             if (currentScenario.isStatic) {
               return (
@@ -430,6 +472,10 @@
 
           return (
             <div className="bg-[#0D1117] min-h-screen font-sans p-2 sm:p-4 flex flex-col items-center text-gray-200">
+                {/* --- NEW: Added the research disclaimer banner --- */}
+                <div className="w-full max-w-7xl mb-2 bg-yellow-900/50 text-yellow-300 text-center text-xs font-semibold p-2 rounded-lg border border-yellow-700/50">
+                    For pure research purposes only - testing Neuron framework
+                </div>
                 <div className="w-full max-w-7xl mb-4">
                     <label htmlFor="scenario-select" className="block text-sm font-medium text-gray-400 mb-1">Select Test Scenario:</label>
                     <select
@@ -454,6 +500,9 @@
                             suggestions={currentScenario.chat.suggestions}
                             onSendMessage={(prompt) => handleInteraction(prompt, false)}
                             isTyping={isTyping}
+                            risk={risk}
+                            setRisk={setRisk}
+                            onGenerateTrashTalk={handleGenerateTrashTalk}
                         />}
                     </div>
                 </div>
@@ -467,6 +516,5 @@
     </script>
 </body>
 </html>
-
 
 
