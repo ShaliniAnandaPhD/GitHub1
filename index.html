@@ -338,10 +338,7 @@
             if (!isButtonAction) { setMessages(newMessages); }
             setIsTyping(true);
             
-            // --- DEBUGGING STEP: Use a very simple prompt to test the connection ---
-            const fullPrompt = `User asked: ${interactionText}. Keep your answer to one sentence.`;
-
-            /* --- ORIGINAL COMPLEX PROMPT (Commented out for testing) ---
+            // --- FIXED: Restored the original, more detailed prompt ---
             let context = `Title: ${currentScenario.title}\nStatus: ${currentScenario.header.status}`;
             if (currentScenario.feed) {
                 context += `\nAlert: ${currentScenario.feed.title} - ${currentScenario.feed.description}`;
@@ -366,7 +363,6 @@
 
               Your Response:
             `;
-            */
             
             const chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
             const payload = { contents: chatHistory };
@@ -469,4 +465,5 @@
     </script>
 </body>
 </html>
+
 
