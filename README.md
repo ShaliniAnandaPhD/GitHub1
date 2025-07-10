@@ -1,1 +1,1 @@
-github usage files
+Files for GitHub
