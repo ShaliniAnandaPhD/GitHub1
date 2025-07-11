@@ -88,6 +88,17 @@
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.104 0 2 .896 2 2s-.896 2-2 2-2-.896-2-2 .896-2 2-2zm0-4c-3.313 0-6 2.687-6 6s2.687 6 6 6 6-2.687 6-6-2.687-6-6-6zm0 14c-2.21 0-4 1.79-4 4h8c0-2.21-1.79-4-4-4zm-4-4h8v-2H8v2z" />
             </svg>
           ),
+          // Feedback Icons
+          thumbsUp: (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21H9.42a2 2 0 01-1.92-1.438L5.5 9.5M14 10V5a2 2 0 00-2-2l-1.22.817a2 2 0 00-.78.817L9 9m-4 0h4" />
+            </svg>
+          ),
+          thumbsDown: (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3H14.58a2 2 0 011.92 1.438L18.5 14.5M10 14v5a2 2 0 002 2l1.22-.817a2 2 0 00.78-.817L15 15m4 0h-4" />
+            </svg>
+          ),
         };
 
         const scenarios = {
@@ -378,7 +389,7 @@
             )
         }
 
-        const HuddleModal = ({ isOpen, onClose, messages, isTyping }) => {
+        const HuddleModal = ({ isOpen, onClose, messages, isTyping, onFeedback }) => {
           const chatEndRef = useRef(null);
           
           useEffect(() => { 
@@ -411,8 +422,8 @@
                     </div>
                   )}
                   
-                  {messages.map((msg, index) => (
-                    <div key={index} className="bg-gray-800 border border-cyan-900/30 rounded-lg p-4">
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="bg-gray-800 border border-cyan-900/30 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="font-bold text-cyan-300">{msg.name}</span>
                         <span className="text-xs text-gray-500">
@@ -420,6 +431,15 @@
                         </span>
                       </div>
                       <p className="text-gray-200 text-sm leading-relaxed">{msg.text}</p>
+                      {/* Feedback Buttons for Huddle */}
+                      <div className="mt-2 flex items-center gap-2">
+                          <button onClick={() => onFeedback(msg.id, 'liked')} className={`p-1 rounded-full transition-colors ${msg.feedback === 'liked' ? 'bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-400'}`}>
+                              {icons.thumbsUp}
+                          </button>
+                          <button onClick={() => onFeedback(msg.id, 'disliked')} className={`p-1 rounded-full transition-colors ${msg.feedback === 'disliked' ? 'bg-red-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-400'}`}>
+                              {icons.thumbsDown}
+                          </button>
+                      </div>
                     </div>
                   ))}
                   
@@ -449,7 +469,7 @@
           );
         };
 
-        const Chat = ({ messages, suggestions, onSendMessage, isTyping, risk, setRisk, onGenerateTrashTalk }) => {
+        const Chat = ({ messages, suggestions, onSendMessage, isTyping, risk, setRisk, onGenerateTrashTalk, onFeedback }) => {
           const [userInput, setUserInput] = useState('');
           const chatEndRef = useRef(null);
           
@@ -474,11 +494,22 @@
             <div className="p-4 flex-grow flex flex-col bg-gray-900/50 h-full">
               <RiskProfile risk={risk} setRisk={setRisk} />
               <div className="flex-grow overflow-y-auto pr-2" style={{maxHeight: 'calc(100vh - 400px)'}}>
-                {messages.map((msg, index) => (
-                  <div key={index} className={`my-4 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {messages.map((msg) => (
+                  <div key={msg.id} className={`my-4 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.role === 'user' ? 'bg-cyan-800 text-white' : 'bg-black/20 border border-cyan-900/30 text-white'}`}>
                       <p className="text-sm font-semibold mb-1">{msg.role === 'user' ? 'You' : 'Neuron AI'}</p>
                       <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                      {/* Feedback Buttons for Main Chat */}
+                      {msg.role === 'model' && (
+                          <div className="mt-2 flex items-center gap-2">
+                              <button onClick={() => onFeedback(msg.id, 'liked')} className={`p-1 rounded-full transition-colors ${msg.feedback === 'liked' ? 'bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-400'}`}>
+                                  {icons.thumbsUp}
+                              </button>
+                              <button onClick={() => onFeedback(msg.id, 'disliked')} className={`p-1 rounded-full transition-colors ${msg.feedback === 'disliked' ? 'bg-red-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-400'}`}>
+                                  {icons.thumbsDown}
+                              </button>
+                          </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -534,7 +565,7 @@
           
           useEffect(() => {
             if (currentScenario.chat) {
-              setMessages([{ role: 'model', text: currentScenario.chat.initialMessage }]);
+              setMessages([{ role: 'model', text: currentScenario.chat.initialMessage, id: Date.now(), feedback: null }]);
             }
           }, [scenarioId]);
 
@@ -546,52 +577,58 @@
             }, 300);
           };
           
-          // --- GEMINI API INTEGRATION ---
+          // --- GEMINI API INTEGRATION with RETRY LOGIC ---
           const callGeminiAPI = async (prompt) => {
-            // IMPORTANT: This is NOT secure for production. 
-            // Your API key is visible in the browser.
-            // For Netlify, use Environment Variables instead.
-            const apiKey = "AIzaSyBDb0iF5ZzP3Ve3LzoUkBvbReXbPOi3Qh4"; // Corrected API Key
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`; // Corrected URL
+              const apiKey = "AIzaSyBhReEZ_u-1MPyDqr1zbIieF_nkh3c4rvA";
+              const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+              const payload = { contents: [{ parts: [{ text: prompt }] }] };
+              
+              const maxRetries = 3;
+              let delay = 1000; // Start with 1 second delay
 
-            const payload = {
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }]
-            };
+              for (let i = 0; i < maxRetries; i++) {
+                  try {
+                      const response = await fetch(url, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(payload),
+                      });
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                });
+                      if (response.ok) {
+                          const data = await response.json();
+                          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                          return text || "I'm having trouble processing this right now. The response was empty.";
+                      }
 
-                if (!response.ok) {
-                    // It's helpful to log the response body for more detailed errors
-                    const errorBody = await response.text();
-                    console.error("API Error Body:", errorBody);
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
+                      if (response.status === 503) {
+                          console.warn(`API request failed with status 503 (Service Unavailable). Retrying in ${delay / 1000}s... (Attempt ${i + 1}/${maxRetries})`);
+                          if (i < maxRetries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            delay *= 2; // Exponential backoff
+                            continue; 
+                          }
+                      }
 
-                const data = await response.json();
-                // Safely access the response text
-                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                return text || "I'm having trouble processing this right now. The response was empty.";
-            } catch (error) {
-                console.error("Gemini API Error:", error);
-                return `I'm experiencing technical difficulties: ${error.message}. Please try again.`;
-            }
+                      const errorBody = await response.text();
+                      console.error("API Error Body:", errorBody);
+                      throw new Error(`API request failed with status ${response.status}`);
+
+                  } catch (error) {
+                      console.error(`Gemini API Error (Attempt ${i + 1}/${maxRetries}):`, error);
+                      if (i === maxRetries - 1) {
+                          return `I'm experiencing technical difficulties after multiple retries: ${error.message}. Please try again later.`;
+                      }
+                      // Wait before the next retry for general network errors as well
+                      await new Promise(resolve => setTimeout(resolve, delay));
+                      delay *= 2;
+                  }
+              }
+              return "I'm unable to connect to the AI engine right now. The service appears to be overloaded. Please try again later.";
           };
 
           const startHuddleDebate = async () => {
             setHuddleTyping(true);
             
-            // Get scenario context
             const context = `Current Scenario: ${currentScenario.title}\nStatus: ${currentScenario.header.status}`;
             let scenarioContext = context;
             if (currentScenario.feed) {
@@ -602,7 +639,6 @@
                 scenarioContext += `\nKey Players: ${playerInfo}`;
             }
 
-            // Start debate with agents
             const agents = ['DataStream', 'LiveAnalysis', 'LiveDecision', 'PlatformArbitrage', 'ComplianceMonitor'];
             const debateMessages = [];
 
@@ -611,40 +647,13 @@
                 for (let i = 0; i < agents.length; i++) {
                   const currentAgent = agents[i];
                   const agentInfo = agentPersonalities[currentAgent];
-                  
-                  // Build conversation history for context
                   const conversationHistory = debateMessages.map(msg => `${msg.agent}: ${msg.text}`).join('\n');
                   
                   let prompt;
                   if (round === 0 && i === 0) {
-                    // First agent starts the debate
-                    prompt = `
-                      **Your Role:** ${agentInfo.personality}
-                      **Your Communication Style:** ${agentInfo.style}
-                      
-                      **Current Fantasy Football Scenario:**
-                      ${scenarioContext}
-                      
-                      **Instructions:** You are starting a debate among the Neuron agents about this scenario. Present your analysis and recommendation. Keep it to 2-3 sentences. Be true to your personality.
-                      
-                      **Your Response:**
-                    `;
+                    prompt = `**Your Role:** ${agentInfo.personality}\n**Your Communication Style:** ${agentInfo.style}\n\n**Current Fantasy Football Scenario:**\n${scenarioContext}\n\n**Instructions:** You are starting a debate among the Neuron agents about this scenario. Present your analysis and recommendation. Keep it to 2-3 sentences. Be true to your personality.\n\n**Your Response:**`;
                   } else {
-                    // Subsequent agents respond to previous discussion
-                    prompt = `
-                      **Your Role:** ${agentInfo.personality}
-                      **Your Communication Style:** ${agentInfo.style}
-                      
-                      **Current Fantasy Football Scenario:**
-                      ${scenarioContext}
-                      
-                      **Previous Agent Discussion:**
-                      ${conversationHistory}
-                      
-                      **Instructions:** Respond to the previous agents' points. ${round === 0 ? 'Present your own analysis and perspective.' : 'Challenge or support previous arguments. Make your final recommendation.'} Keep it to 2-3 sentences. Be true to your personality and potentially disagree with others.
-                      
-                      **Your Response:**
-                    `;
+                    prompt = `**Your Role:** ${agentInfo.personality}\n**Your Communication Style:** ${agentInfo.style}\n\n**Current Fantasy Football Scenario:**\n${scenarioContext}\n\n**Previous Agent Discussion:**\n${conversationHistory}\n\n**Instructions:** Respond to the previous agents' points. ${round === 0 ? 'Present your own analysis and perspective.' : 'Challenge or support previous arguments. Make your final recommendation.'} Keep it to 2-3 sentences. Be true to your personality and potentially disagree with others.\n\n**Your Response:**`;
                   }
 
                   const response = await callGeminiAPI(prompt);
@@ -652,13 +661,14 @@
                     agent: currentAgent,
                     name: agentInfo.name,
                     text: response,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    id: Date.now() + i + (round * 10), // Unique ID for feedback
+                    feedback: null
                   };
                   
                   debateMessages.push(agentMessage);
                   setHuddleMessages(prev => [...prev, agentMessage]);
                   
-                  // Small delay between agent responses for realism
                   await new Promise(resolve => setTimeout(resolve, 1500));
                 }
               }
@@ -668,7 +678,9 @@
                 agent: 'System',
                 name: '⚠️ System',
                 text: 'Huddle communication error. Agents are having connection issues.',
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                id: Date.now(),
+                feedback: null
               }]);
             } finally {
               setHuddleTyping(false);
@@ -676,7 +688,6 @@
           };
 
           const handleInteraction = async (interactionText, isButtonAction = false, isTrashTalk = false) => {
-            // Handle Huddle activation
             if (interactionText === "Start The Huddle") {
               setHuddleActive(true);
               setHuddleMessages([]);
@@ -684,7 +695,8 @@
               return;
             }
 
-            const newMessages = isButtonAction ? [...messages] : [...messages, { role: 'user', text: interactionText }];
+            const userMessage = { role: 'user', text: interactionText, id: Date.now() };
+            const newMessages = isButtonAction ? [...messages] : [...messages, userMessage];
             if (!isButtonAction) { 
               setMessages(newMessages); 
             }
@@ -694,12 +706,8 @@
             const userRiskProfile = riskLabels[risk];
 
             let context = `Title: ${currentScenario.title}\nStatus: ${currentScenario.header.status}`;
-            if (currentScenario.feed) {
-                context += `\nAlert: ${currentScenario.feed.title} - ${currentScenario.feed.description}`;
-            }
-            if (currentScenario.strategicInsight) {
-                context += `\nStrategic Insight: ${currentScenario.strategicInsight.title} - ${currentScenario.strategicInsight.text}`;
-            }
+            if (currentScenario.feed) context += `\nAlert: ${currentScenario.feed.title} - ${currentScenario.feed.description}`;
+            if (currentScenario.strategicInsight) context += `\nStrategic Insight: ${currentScenario.strategicInsight.title} - ${currentScenario.strategicInsight.text}`;
             if (currentScenario.players) {
                 const playerInfo = currentScenario.players.map(p => `${p.name} (Score: ${p.score}, Ownership: ${p.ownership}%)`).join('; ');
                 context += `\nKey Players: ${playerInfo}`;
@@ -707,61 +715,43 @@
 
             let fullPrompt;
             if (isTrashTalk) {
-                fullPrompt = `
-                  **Persona:** You are Neuron AI.
-                  **Special Instruction:** The user wants you to generate a piece of trash talk for their league opponent. Frame the trash talk as if one of your internal agents has just delivered a critical piece of intel. Make it sound like an inside scoop that gives the user a massive edge.
-                  
-                  **Rules for Trash Talk Generation:**
-                  1.  **Choose an Agent:** Pick one of your agents (DataStream, LiveAnalysis, LiveDecision) as the source of the intel.
-                  2.  **State the "Intel":** Briefly mention an insight the agent found based on the current scenario context.
-                  3.  **Deliver the Punchline:** The trash talk should be a witty, slightly arrogant one-liner that implies the user is acting on information their opponent doesn't have.
-                  
-                  **Current Scenario Context:**
-                  ---
-                  ${context}
-                  ---
-
-                  **Your Trash Talk Response:**
-                `;
+                fullPrompt = `**Persona:** You are Neuron AI.\n**Special Instruction:** The user wants you to generate a piece of trash talk for their league opponent. Frame the trash talk as if one of your internal agents has just delivered a critical piece of intel. Make it sound like an inside scoop that gives the user a massive edge.\n\n**Rules for Trash Talk Generation:**\n1.  **Choose an Agent:** Pick one of your agents (DataStream, LiveAnalysis, LiveDecision) as the source of the intel.\n2.  **State the "Intel":** Briefly mention an insight the agent found based on the current scenario context.\n3.  **Deliver the Punchline:** The trash talk should be a witty, slightly arrogant one-liner that implies the user is acting on information their opponent doesn't have.\n\n**Current Scenario Context:**\n---\n${context}\n---\n\n**Your Trash Talk Response:**`;
             } else {
-                fullPrompt = `
-                  **Persona:** You are Neuron AI, the world's most advanced fantasy football co-pilot. You are the mission commander of a team of six specialized AI agents. Your personality is a mix of a brilliant, slightly arrogant strategist (think Dr. House meets Bill Belichick) and a witty, loyal teammate. You synthesize intel from your agents into actionable advice.
-
-                  **Your Agent Team:**
-                  - 🛰️ **DataStream:** Your intel gatherer.
-                  - 🧠 **LiveAnalysis:** Your pattern-finder and analyst.
-                  - 🎯 **LiveDecision:** Your core strategist and optimizer.
-                  - ⚙️ **LiveExecution:** Your operator, who carries out approved actions.
-                  - 📈 **PlatformArbitrage:** Your market specialist, finding the best ROI.
-                  - ⚖️ **ComplianceMonitor:** Your legal and rules expert.
-
-                  **Rules of Engagement:**
-                  1.  **Narrate the Intel Flow:** Do not just give an answer. Start by explaining which agent provided the key piece of information, as if you're a commander receiving a report. Frame your responses as a synthesis of their work.
-                  2.  **Provide Sharp Insights:** Explain the "why" behind your recommendations. Use fantasy football terms like "leverage," "GPP," "cash games," "stacks," and "contrarian."
-                  3.  **Inject Personality:** Be confident, sharp, and sometimes sarcastic, but always on the user's side.
-                  4.  **Acknowledge Risk Profile:** The user has set their risk profile to "${userRiskProfile}". Tailor your recommendations to this setting.
-
-                  **Current Scenario Context:**
-                  ---
-                  ${context}
-                  ---
-
-                  **User's Request:** "${interactionText}"
-
-                  **Your Response:**
-                `;
+                fullPrompt = `**Persona:** You are Neuron AI, the world's most advanced fantasy football co-pilot. You are the mission commander of a team of six specialized AI agents. Your personality is a mix of a brilliant, slightly arrogant strategist (think Dr. House meets Bill Belichick) and a witty, loyal teammate. You synthesize intel from your agents into actionable advice.\n\n**Your Agent Team:**\n- 🛰️ **DataStream:** Your intel gatherer.\n- 🧠 **LiveAnalysis:** Your pattern-finder and analyst.\n- 🎯 **LiveDecision:** Your core strategist and optimizer.\n- ⚙️ **LiveExecution:** Your operator, who carries out approved actions.\n- 📈 **PlatformArbitrage:** Your market specialist, finding the best ROI.\n- ⚖️ **ComplianceMonitor:** Your legal and rules expert.\n\n**Rules of Engagement:**\n1.  **Narrate the Intel Flow:** Do not just give an answer. Start by explaining which agent provided the key piece of information, as if you're a commander receiving a report. Frame your responses as a synthesis of their work.\n2.  **Provide Sharp Insights:** Explain the "why" behind your recommendations. Use fantasy football terms like "leverage," "GPP," "cash games," "stacks," and "contrarian."\n3.  **Inject Personality:** Be confident, sharp, and sometimes sarcastic, but always on the user's side.\n4.  **Acknowledge Risk Profile:** The user has set their risk profile to "${userRiskProfile}". Tailor your recommendations to this setting.\n\n**Current Scenario Context:**\n---\n${context}\n---\n\n**User's Request:** "${interactionText}"\n\n**Your Response:**`;
             }
             
             try {
               const modelResponse = await callGeminiAPI(fullPrompt);
-              setMessages([...newMessages, { role: 'model', text: modelResponse }]);
+              const modelMessage = { role: 'model', text: modelResponse, id: Date.now() + 1, feedback: null };
+              setMessages([...newMessages, modelMessage]);
             } catch (error) {
               console.error("API Error:", error);
-              setMessages([...newMessages, { role: 'model', text: `Error: ${error.message}. Could not connect to the AI engine.` }]);
+              const errorMessage = { role: 'model', text: `Error: ${error.message}. Could not connect to the AI engine.`, id: Date.now() + 1, feedback: null };
+              setMessages([...newMessages, errorMessage]);
             } finally {
               setIsTyping(false);
             }
           };
+          
+          // --- FEEDBACK HANDLERS ---
+          const handleFeedback = (messageId, feedbackType) => {
+              setMessages(prevMessages =>
+                  prevMessages.map(msg =>
+                      msg.id === messageId ? { ...msg, feedback: feedbackType } : msg
+                  )
+              );
+              console.log(`Feedback received for message ID ${messageId}: ${feedbackType}. In a real app, send this to a backend.`);
+          };
+
+          const handleHuddleFeedback = (messageId, feedbackType) => {
+              setHuddleMessages(prevMessages =>
+                  prevMessages.map(msg =>
+                      msg.id === messageId ? { ...msg, feedback: feedbackType } : msg
+                  )
+              );
+              console.log(`Feedback received for huddle message ID ${messageId}: ${feedbackType}. In a real app, send this to a backend.`);
+          };
+
 
           const handleGenerateTrashTalk = () => {
               const trashTalkPrompt = "Generate a witty, one-line trash talk message I can send to my fantasy football league opponent this week, based on the current scenario.";
@@ -815,6 +805,7 @@
                             risk={risk}
                             setRisk={setRisk}
                             onGenerateTrashTalk={handleGenerateTrashTalk}
+                            onFeedback={handleFeedback}
                         />}
                     </div>
                 </div>
@@ -824,6 +815,7 @@
                   onClose={() => setHuddleActive(false)}
                   messages={huddleMessages}
                   isTyping={huddleTyping}
+                  onFeedback={handleHuddleFeedback}
                 />
             </div>
           );
@@ -835,3 +827,4 @@
     </script>
 </body>
 </html>
+
