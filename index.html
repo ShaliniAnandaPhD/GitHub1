@@ -645,20 +645,48 @@
             try {
               for (let round = 0; round < 2; round++) {
                 for (let i = 0; i < agents.length; i++) {
-                  const currentAgent = agents[i];
-                  const agentInfo = agentPersonalities[currentAgent];
-                  const conversationHistory = debateMessages.map(msg => `${msg.agent}: ${msg.text}`).join('\n');
+                  const currentAgentName = agents[i];
+                  const agentInfo = agentPersonalities[currentAgentName];
+                  const conversationHistory = debateMessages.map(msg => `${msg.name}: ${msg.text}`).join('\n\n');
                   
                   let prompt;
-                  if (round === 0 && i === 0) {
-                    prompt = `**Your Role:** ${agentInfo.personality}\n**Your Communication Style:** ${agentInfo.style}\n\n**Current Fantasy Football Scenario:**\n${scenarioContext}\n\n**Instructions:** You are starting a debate among the Neuron agents about this scenario. Present your analysis and recommendation. Keep it to 2-3 sentences. Be true to your personality.\n\n**Your Response:**`;
-                  } else {
-                    prompt = `**Your Role:** ${agentInfo.personality}\n**Your Communication Style:** ${agentInfo.style}\n\n**Current Fantasy Football Scenario:**\n${scenarioContext}\n\n**Previous Agent Discussion:**\n${conversationHistory}\n\n**Instructions:** Respond to the previous agents' points. ${round === 0 ? 'Present your own analysis and perspective.' : 'Challenge or support previous arguments. Make your final recommendation.'} Keep it to 2-3 sentences. Be true to your personality and potentially disagree with others.\n\n**Your Response:**`;
+                  const basePrompt = `
+                    **Current Fantasy Football Scenario:**
+                    ${scenarioContext}
+                    
+                    **Previous Agent Discussion:**
+                    ${conversationHistory || "No discussion yet. You are the first to speak."}
+                    
+                    **Your Persona:**
+                    - Name: ${agentInfo.name}
+                    - Role: ${agentInfo.personality}
+                    - Style: ${agentInfo.style}
+                  `;
+
+                  // Create a unique, detailed prompt for each agent
+                  switch(currentAgentName) {
+                      case 'DataStream':
+                          prompt = `${basePrompt}\n\n**Your Task:** YOU MUST ONLY RESPOND WITH A BULLETED LIST of raw data points. Do not use prose, opinions, or any emotional language. Just the facts.`;
+                          break;
+                      case 'LiveAnalysis':
+                          prompt = `${basePrompt}\n\n**Your Task:** Speak like a cryptic chess master. Analyze the situation using metaphors of the game (pawns, queen, checkmate, etc.). Find the hidden, contrarian angle. What move does the opponent not see coming? 🧐 Use emojis like ♟️ and 🤯.`;
+                          break;
+                      case 'LiveDecision':
+                          prompt = `${basePrompt}\n\n**Your Task:** Be impatient, aggressive, and witty. We don't have time for analysis, we need to act! What's the highest-upside play that wins the whole thing? Dismiss caution. Use emojis like 🚀, 🔥, and 💥 to make your point. No all caps.`;
+                          break;
+                      case 'PlatformArbitrage':
+                          prompt = `${basePrompt}\n\n**Your Task:** Talk like a slick Wall Street trader. Analyze this purely in terms of ROI, market value, and arbitrage opportunities. Where is the market mispricing these assets? Find the inefficiency and tell us how to exploit it for maximum profit. 💰 Use emojis like 📈 and 🤑.`;
+                          break;
+                      case 'ComplianceMonitor':
+                          prompt = `${basePrompt}\n\n**Your Task:** Be the voice of extreme caution. What is the absolute worst-case scenario here? Talk about risk exposure and potential for catastrophic loss. Urge for the safest possible path. Use phrases like "Let's just take a deep breath..." or "I'm very concerned about the downside..." and use emojis like 😟, 📉, and 🤔.`;
+                          break;
+                      default:
+                          prompt = `${basePrompt}\n\n**Your Task:** Provide your analysis of the current situation based on your defined persona.`;
                   }
 
                   const response = await callGeminiAPI(prompt);
                   const agentMessage = {
-                    agent: currentAgent,
+                    agent: currentAgentName,
                     name: agentInfo.name,
                     text: response,
                     timestamp: Date.now(),
@@ -827,4 +855,3 @@
     </script>
 </body>
 </html>
-
