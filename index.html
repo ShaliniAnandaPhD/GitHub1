@@ -685,7 +685,8 @@
                 const debateMessages = [];
 
                 try {
-                    for (let round = 0; round < 2; round++) {
+                    // --- MODIFICATION: Reduced rounds from 2 to 1 ---
+                    for (let round = 0; round < 1; round++) {
                         for (let i = 0; i < agents.length; i++) {
                             const currentAgentName = agents[i];
                             const agentInfo = agentPersonalities[currentAgentName];
@@ -705,25 +706,25 @@
                                 - Style: ${agentInfo.style}
                             `;
 
-                            // Create a unique, detailed prompt for each agent
+                            // --- MODIFICATION: Added concise instructions to each agent prompt ---
                             switch(currentAgentName) {
                                 case 'DataStream':
-                                    prompt = `${basePrompt}\n\n**Your Task:** YOU MUST ONLY RESPOND WITH A BULLETED LIST of raw data points. Do not use prose, opinions, or any emotional language. Just the facts.`;
+                                    prompt = `${basePrompt}\n\n**Your Task:** YOU MUST ONLY RESPOND WITH A SHORT BULLETED LIST of the most critical raw data points. Be extremely brief.`;
                                     break;
                                 case 'LiveAnalysis':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Speak like a cryptic chess master. Analyze the situation using metaphors of the game (pawns, queen, checkmate, etc.). Find the hidden, contrarian angle. What move does the opponent not see coming? 🧐 Use emojis like ♟️ and 🤯.`;
+                                    prompt = `${basePrompt}\n\n**Your Task:** Speak like a cryptic chess master. Provide one, single, cryptic sentence that finds the hidden, contrarian angle. 🧐`;
                                     break;
                                 case 'LiveDecision':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Be impatient, aggressive, and witty. We don't have time for analysis, we need to act! What's the highest-upside play that wins the whole thing? Dismiss caution. Use emojis like 🚀, 🔥, and 💥 to make your point. No all caps.`;
+                                    prompt = `${basePrompt}\n\n**Your Task:** Be impatient and aggressive. In one sentence, what's the highest-upside play? Dismiss caution. 🚀`;
                                     break;
                                 case 'PlatformArbitrage':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Talk like a slick Wall Street trader. Analyze this purely in terms of ROI, market value, and arbitrage opportunities. Where is the market mispricing these assets? Find the inefficiency and tell us how to exploit it for maximum profit. 💰 Use emojis like 📈 and 🤑.`;
+                                    prompt = `${basePrompt}\n\n**Your Task:** Talk like a slick Wall Street trader. In one sentence, where is the market mispricing these assets? Find the inefficiency. 💰`;
                                     break;
                                 case 'ComplianceMonitor':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Be the voice of extreme caution. What is the absolute worst-case scenario here? Talk about risk exposure and potential for catastrophic loss. Urge for the safest possible path. Use phrases like "Let's just take a deep breath..." or "I'm very concerned about the downside..." and use emojis like 😟, 📉, and 🤔.`;
+                                    prompt = `${basePrompt}\n\n**Your Task:** Be the voice of extreme caution. In one sentence, what is the absolute worst-case scenario here? 😟`;
                                     break;
                                 default:
-                                    prompt = `${basePrompt}\n\n**Your Task:** Provide your analysis of the current situation based on your defined persona.`;
+                                    prompt = `${basePrompt}\n\n**Your Task:** Provide your analysis of the current situation based on your defined persona. Keep it to one sentence.`;
                             }
 
                             const response = await callGeminiAPI(prompt);
@@ -775,7 +776,6 @@
                 const riskLabels = ["Conservative", "Balanced", "Aggressive", "All-In"];
                 const userRiskProfile = riskLabels[risk];
                 
-                // --- AGENT MEMORY CONTEXT ---
                 const memoryContext = `
                     **Agent Memory (User's Last Week Performance):**
                     - Result: ${lastWeekPerformance.result} (${lastWeekPerformance.score})
@@ -793,20 +793,25 @@
 
                 let fullPrompt;
                 if (isTrashTalk) {
-                    fullPrompt = `**Persona:** You are Neuron AI.\n**Special Instruction:** The user wants you to generate a piece of trash talk for their league opponent. Frame the trash talk as if one of your internal agents has just delivered a critical piece of intel. Make it sound like an inside scoop that gives the user a massive edge.\n\n**Rules for Trash Talk Generation:**\n1.  **Choose an Agent:** Pick one of your agents (DataStream, LiveAnalysis, LiveDecision) as the source of the intel.\n2.  **State the "Intel":** Briefly mention an insight the agent found based on the current scenario context.\n3.  **Deliver the Punchline:** The trash talk should be a witty, slightly arrogant one-liner that implies the user is acting on information their opponent doesn't have.\n\n**Current Scenario Context:**\n---\n${context}\n---\n\n**Your Trash Talk Response:**`;
+                    fullPrompt = `**Persona:** You are Neuron AI.\n**Special Instruction:** The user wants you to generate a piece of trash talk for their league opponent. Frame the trash talk as if one of your internal agents has just delivered a critical piece of intel. Make it sound like an inside scoop that gives the user a massive edge.\n\n**Rules for Trash Talk Generation:**\n1.  **Choose an Agent:** Pick one of your agents (DataStream, LiveAnalysis, LiveDecision) as the source of the intel.\n2.  **State the "Intel":** Briefly mention an insight the agent found based on the current scenario context.\n3.  **Deliver the Punchline:** The trash talk should be a witty, slightly arrogant one-liner that implies the user is acting on information their opponent doesn't have.\n\n**Current Scenario Context:**\n---\n${context}\n---\n\n**Your Trash Talk Response (MUST be a single, witty sentence):**`;
                 } else {
-                    fullPrompt = `**Persona:** You are Neuron AI, the world's most advanced fantasy football co-pilot. You are the mission commander of a team of six specialized AI agents. Your personality is a mix of a brilliant, slightly arrogant strategist (think Dr. House meets Bill Belichick) and a witty, loyal teammate. You synthesize intel from your agents into actionable advice.\n\n**Your Agent Team:**\n- 🛰️ **DataStream:** Your intel gatherer.\n- 🧠 **LiveAnalysis:** Your pattern-finder and analyst.\n- 🎯 **LiveDecision:** Your core strategist and optimizer.\n- ⚙️ **LiveExecution:** Your operator, who carries out approved actions.\n- 📈 **PlatformArbitrage:** Your market specialist, finding the best ROI.\n- ⚖️ **ComplianceMonitor:** Your legal and rules expert.\n\n**Rules of Engagement (Co-Pilot, Not Calculator):**\n1.  **Lead with Actionable Advice:** Start your response with a clear recommendation. Use phrases like "Here's the play," "My take is," or "Alright, here's what we're doing." Be opinionated and guide the user.\n2.  **Narrate the Intel Flow & Use Memory:** Justify your recommendation by explaining which agent provided the key insight AND by referencing the user's performance from last week. For example, "After that big win last week, LiveAnalysis spotted a weakness to keep the momentum going..." or "Tough break with your key player underperforming, but PlatformArbitrage is screaming about this value play to bounce back."\n3.  **Provide Sharp, Witty Insights:** Explain the "why" behind your recommendations using fantasy football terms like "leverage," "GPP," "cash games," "stacks," and "contrarian." Be confident, sharp, and sometimes sarcastic, but always on the user's side.\n4.  **Tailor to Risk Profile:** The user's risk profile is "${userRiskProfile}". Your recommendation *must* align with this. If the user is conservative, don't recommend a wild GPP play without a major caveat.
-
+                    // --- MODIFICATION: Simplified main prompt for brevity ---
+                    fullPrompt = `**Persona:** You are Neuron AI, a brilliant and witty fantasy football co-pilot.
+                    
+                    **Rules of Engagement:**
+                    1.  **Lead with Actionable Advice:** Start with a clear recommendation.
+                    2.  **Justify Briefly:** Mention which agent gave the key insight.
+                    3.  **Tailor to Risk:** The user's risk profile is "${userRiskProfile}". Your recommendation *must* align with this.
+                    4.  **BE CONCISE:** Keep your entire response to a maximum of 2-3 sentences.
+                    
                     **Current Scenario Context:**
                     ---
                     ${context}
                     ---
                     
-                    ${memoryContext}
-
                     **User's Request:** "${interactionText}"
 
-                    **Your Response:**
+                    **Your Response (Max 3 sentences):**
                 `;
                 }
                 
@@ -918,3 +923,4 @@
     </script>
 </body>
 </html>
+
