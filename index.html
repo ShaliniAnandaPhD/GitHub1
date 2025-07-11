@@ -414,14 +414,42 @@
             )
         }
 
-        const HuddleModal = ({ isOpen, onClose, messages, isTyping, onFeedback }) => {
+        const HuddleVerdict = ({ verdict, onAction, onClose }) => {
+            if (!verdict) return null;
+
+            return (
+                <div className="p-4 border-t-2 border-cyan-500/50 bg-cyan-900/20 mt-4">
+                    <h3 className="text-lg font-bold text-cyan-300 mb-2">The Huddle's Verdict</h3>
+                    <p className="text-white mb-4">
+                        After debating, the agents have reached a <strong className="text-cyan-400">{verdict.consensus}</strong> consensus.
+                    </p>
+                    <div className="space-y-3">
+                        <div>
+                            <p className="font-semibold text-white">🚀 Aggressive Play:</p>
+                            <p className="text-gray-300 text-sm">{verdict.aggressive}</p>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-white">🛡️ Conservative Play:</p>
+                            <p className="text-gray-300 text-sm">{verdict.conservative}</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                        <button onClick={() => onAction(verdict.aggressive)} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">Execute Aggressive</button>
+                        <button onClick={() => onAction(verdict.conservative)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200">Execute Conservative</button>
+                        <button onClick={onClose} className="bg-red-800/50 hover:bg-red-700/50 text-red-300 px-3 py-2 rounded-lg text-sm transition-all duration-200">Dismiss</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const HuddleModal = ({ isOpen, onClose, messages, isTyping, onFeedback, verdict, onVerdictAction }) => {
             const chatEndRef = useRef(null);
             
             useEffect(() => { 
                 if (chatEndRef.current) {
                     chatEndRef.current.scrollIntoView({ behavior: "smooth" }); 
                 }
-            }, [messages, isTyping]);
+            }, [messages, isTyping, verdict]);
 
             if (!isOpen) return null;
 
@@ -456,7 +484,6 @@
                                         </span>
                                     </div>
                                     <p className="text-gray-200 text-sm leading-relaxed">{msg.text}</p>
-                                    {/* Feedback Buttons for Huddle */}
                                     <div className="mt-2 flex items-center gap-2">
                                         <button onClick={() => onFeedback(msg.id, 'liked')} className={`p-1 rounded-full transition-colors ${msg.feedback === 'liked' ? 'bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-400'}`}>
                                             {icons.thumbsUp}
@@ -480,14 +507,10 @@
                                     </div>
                                 </div>
                             )}
+
+                            {verdict && <HuddleVerdict verdict={verdict} onAction={onVerdictAction} onClose={onClose} />}
                             
                             <div ref={chatEndRef} />
-                        </div>
-                        
-                        <div className="p-4 border-t border-cyan-900/50 bg-black/20">
-                            <p className="text-xs text-gray-400 text-center">
-                                Agents debate autonomously using specialized AI personalities. Each agent represents a different strategic perspective.
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -524,7 +547,6 @@
                                 <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.role === 'user' ? 'bg-cyan-800 text-white' : 'bg-black/20 border border-cyan-900/30 text-white'}`}>
                                     <p className="text-sm font-semibold mb-1">{msg.role === 'user' ? 'You' : 'Neuron AI'}</p>
                                     <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                                    {/* Feedback Buttons for Main Chat */}
                                     {msg.role === 'model' && (
                                         <div className="mt-2 flex items-center gap-2">
                                             <button onClick={() => onFeedback(msg.id, 'liked')} className={`p-1 rounded-full transition-colors ${msg.feedback === 'liked' ? 'bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-400'}`}>
@@ -584,8 +606,8 @@
             const [huddleActive, setHuddleActive] = useState(false);
             const [huddleMessages, setHuddleMessages] = useState([]);
             const [huddleTyping, setHuddleTyping] = useState(false);
+            const [huddleVerdict, setHuddleVerdict] = useState(null);
             
-            // Agent Memory State
             const [lastWeekPerformance, setLastWeekPerformance] = useState({
                 result: 'Win',
                 score: '145.8 - 112.3',
@@ -614,9 +636,8 @@
                 }, 300);
             };
             
-            // --- GEMINI API INTEGRATION with RETRY LOGIC ---
             const callGeminiAPI = async (prompt) => {
-                const apiKey = "AIzaSyBhReEZ_u-1MPyDqr1zbIieF_nkh3c4rvA"; // Hardcoded API Key
+                const apiKey = "AIzaSyBhReEZ_u-1MPyDqr1zbIieF_nkh3c4rvA";
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 const payload = {
                     contents: [{
@@ -626,7 +647,7 @@
                 };
                 
                 const maxRetries = 3;
-                let delay = 1000; // Start with 1 second delay
+                let delay = 1000;
 
                 for (let i = 0; i < maxRetries; i++) {
                     try {
@@ -643,10 +664,10 @@
                         }
 
                         if (response.status === 503) {
-                            console.warn(`API request failed with status 503 (Service Unavailable). Retrying in ${delay / 1000}s... (Attempt ${i + 1}/${maxRetries})`);
+                            console.warn(`API request failed with status 503. Retrying...`);
                             if (i < maxRetries - 1) {
                                 await new Promise(resolve => setTimeout(resolve, delay));
-                                delay *= 2; // Exponential backoff
+                                delay *= 2;
                                 continue; 
                             }
                         }
@@ -658,18 +679,18 @@
                     } catch (error) {
                         console.error(`Gemini API Error (Attempt ${i + 1}/${maxRetries}):`, error);
                         if (i === maxRetries - 1) {
-                            return `I'm experiencing technical difficulties after multiple retries: ${error.message}. Please try again later.`;
+                            return `I'm experiencing technical difficulties: ${error.message}.`;
                         }
-                        // Wait before the next retry for general network errors as well
                         await new Promise(resolve => setTimeout(resolve, delay));
                         delay *= 2;
                     }
                 }
-                return "I'm unable to connect to the AI engine right now. The service appears to be overloaded. Please try again later.";
+                return "I'm unable to connect to the AI engine right now.";
             };
 
             const startHuddleDebate = async () => {
                 setHuddleTyping(true);
+                setHuddleVerdict(null);
                 
                 const context = `Current Scenario: ${currentScenario.title}\nStatus: ${currentScenario.header.status}`;
                 let scenarioContext = context;
@@ -685,7 +706,6 @@
                 const debateMessages = [];
 
                 try {
-                    // --- MODIFICATION: Reduced rounds from 2 to 1 ---
                     for (let round = 0; round < 1; round++) {
                         for (let i = 0; i < agents.length; i++) {
                             const currentAgentName = agents[i];
@@ -694,37 +714,29 @@
                             
                             let prompt;
                             const basePrompt = `
-                                **Current Fantasy Football Scenario:**
-                                ${scenarioContext}
-                                
-                                **Previous Agent Discussion:**
-                                ${conversationHistory || "No discussion yet. You are the first to speak."}
-                                
-                                **Your Persona:**
-                                - Name: ${agentInfo.name}
-                                - Role: ${agentInfo.personality}
-                                - Style: ${agentInfo.style}
+                                **Scenario:** ${scenarioContext}
+                                **Discussion:** ${conversationHistory || "None yet."}
+                                **Your Persona:** ${agentInfo.personality}
                             `;
 
-                            // --- MODIFICATION: Added concise instructions to each agent prompt ---
                             switch(currentAgentName) {
                                 case 'DataStream':
-                                    prompt = `${basePrompt}\n\n**Your Task:** YOU MUST ONLY RESPOND WITH A SHORT BULLETED LIST of the most critical raw data points. Be extremely brief.`;
+                                    prompt = `${basePrompt}\n\n**Task:** Respond with a SHORT bulleted list of the most critical data points. Be extremely brief.`;
                                     break;
                                 case 'LiveAnalysis':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Speak like a cryptic chess master. Provide one, single, cryptic sentence that finds the hidden, contrarian angle. 🧐`;
+                                    prompt = `${basePrompt}\n\n**Task:** Provide one, single, cryptic sentence that finds the hidden, contrarian angle. 🧐`;
                                     break;
                                 case 'LiveDecision':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Be impatient and aggressive. In one sentence, what's the highest-upside play? Dismiss caution. 🚀`;
+                                    prompt = `${basePrompt}\n\n**Task:** Be impatient. In one sentence, what's the highest-upside play? 🚀`;
                                     break;
                                 case 'PlatformArbitrage':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Talk like a slick Wall Street trader. In one sentence, where is the market mispricing these assets? Find the inefficiency. 💰`;
+                                    prompt = `${basePrompt}\n\n**Task:** Be a trader. In one sentence, where is the market mispricing these assets? 💰`;
                                     break;
                                 case 'ComplianceMonitor':
-                                    prompt = `${basePrompt}\n\n**Your Task:** Be the voice of extreme caution. In one sentence, what is the absolute worst-case scenario here? 😟`;
+                                    prompt = `${basePrompt}\n\n**Task:** Be cautious. In one sentence, what is the worst-case scenario? 😟`;
                                     break;
                                 default:
-                                    prompt = `${basePrompt}\n\n**Your Task:** Provide your analysis of the current situation based on your defined persona. Keep it to one sentence.`;
+                                    prompt = `${basePrompt}\n\n**Task:** Provide a one-sentence analysis based on your persona.`;
                             }
 
                             const response = await callGeminiAPI(prompt);
@@ -733,22 +745,48 @@
                                 name: agentInfo.name,
                                 text: response,
                                 timestamp: Date.now(),
-                                id: Date.now() + i + (round * 10), // Unique ID for feedback
+                                id: Date.now() + i + (round * 10),
                                 feedback: null
                             };
                             
                             debateMessages.push(agentMessage);
                             setHuddleMessages(prev => [...prev, agentMessage]);
                             
-                            await new Promise(resolve => setTimeout(resolve, 1500));
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                         }
                     }
+
+                    // --- NEW: Verdict Synthesis Step ---
+                    setHuddleTyping(true);
+                    const fullDebate = debateMessages.map(msg => `${msg.name}: ${msg.text}`).join('\n');
+                    const verdictPrompt = `
+                        You are Neuron AI Mission Commander. Your agents have just concluded a debate.
+                        **Debate Transcript:**
+                        ${fullDebate}
+
+                        **Your Task:**
+                        Synthesize this debate into a final verdict. You MUST reply in a valid JSON object with three keys: "consensus" (a string like "72%"), "aggressive" (a string describing the aggressive play), and "conservative" (a string describing the conservative play). Do not wrap the JSON in markdown.
+                        Example: {"consensus": "85%", "aggressive": "Go all-in on Quentin Johnston for maximum leverage.", "conservative": "Pivot to Joshua Palmer for a safer floor in cash games."}
+                    `;
+
+                    const verdictResponse = await callGeminiAPI(verdictPrompt);
+                    try {
+                        // FIX: Clean the response to remove markdown before parsing
+                        const cleanedResponse = verdictResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                        const parsedVerdict = JSON.parse(cleanedResponse);
+                        setHuddleVerdict(parsedVerdict);
+                    } catch (e) {
+                        console.error("Failed to parse verdict JSON:", e, "Original Response:", verdictResponse);
+                        setHuddleVerdict({ consensus: "Error", aggressive: "Could not generate aggressive play.", conservative: "Could not generate conservative play." });
+                    }
+
+
                 } catch (error) {
                     console.error("Huddle debate error:", error);
                     setHuddleMessages(prev => [...prev, {
                         agent: 'System',
                         name: '⚠️ System',
-                        text: 'Huddle communication error. Agents are having connection issues.',
+                        text: 'Huddle communication error.',
                         timestamp: Date.now(),
                         id: Date.now(),
                         feedback: null
@@ -758,10 +796,17 @@
                 }
             };
 
+            const handleVerdictAction = (actionText) => {
+                handleInteraction(`Executing Huddle Verdict: ${actionText}`, true);
+                setHuddleActive(false);
+                setHuddleVerdict(null);
+            };
+
             const handleInteraction = async (interactionText, isButtonAction = false, isTrashTalk = false) => {
                 if (interactionText === "Start The Huddle") {
                     setHuddleActive(true);
                     setHuddleMessages([]);
+                    setHuddleVerdict(null);
                     startHuddleDebate();
                     return;
                 }
@@ -777,40 +822,27 @@
                 const userRiskProfile = riskLabels[risk];
                 
                 const memoryContext = `
-                    **Agent Memory (User's Last Week Performance):**
+                    **Agent Memory (Last Week):**
                     - Result: ${lastWeekPerformance.result} (${lastWeekPerformance.score})
-                    - Key Player: ${lastWeekPerformance.keyPlayer.name}
-                    - Key Player Performance: ${lastWeekPerformance.keyPlayer.performance} (${lastWeekPerformance.keyPlayer.points} pts)
+                    - Key Player: ${lastWeekPerformance.keyPlayer.name} (${lastWeekPerformance.keyPlayer.performance})
                 `;
 
-                let context = `Title: ${currentScenario.title}\nStatus: ${currentScenario.header.status}`;
-                if (currentScenario.feed) context += `\nAlert: ${currentScenario.feed.title} - ${currentScenario.feed.description}`;
-                if (currentScenario.strategicInsight) context += `\nStrategic Insight: ${currentScenario.strategicInsight.title} - ${currentScenario.strategicInsight.text}`;
-                if (currentScenario.players) {
-                    const playerInfo = currentScenario.players.map(p => `${p.name} (Score: ${p.score}, Ownership: ${p.ownership}%)`).join('; ');
-                    context += `\nKey Players: ${playerInfo}`;
-                }
-
+                let context = `Title: ${currentScenario.title}\nAlert: ${currentScenario.feed.title}`;
+                
                 let fullPrompt;
                 if (isTrashTalk) {
-                    fullPrompt = `**Persona:** You are Neuron AI.\n**Special Instruction:** The user wants you to generate a piece of trash talk for their league opponent. Frame the trash talk as if one of your internal agents has just delivered a critical piece of intel. Make it sound like an inside scoop that gives the user a massive edge.\n\n**Rules for Trash Talk Generation:**\n1.  **Choose an Agent:** Pick one of your agents (DataStream, LiveAnalysis, LiveDecision) as the source of the intel.\n2.  **State the "Intel":** Briefly mention an insight the agent found based on the current scenario context.\n3.  **Deliver the Punchline:** The trash talk should be a witty, slightly arrogant one-liner that implies the user is acting on information their opponent doesn't have.\n\n**Current Scenario Context:**\n---\n${context}\n---\n\n**Your Trash Talk Response (MUST be a single, witty sentence):**`;
+                    fullPrompt = `**Persona:** Neuron AI.\n**Instruction:** Generate witty trash talk for a fantasy football opponent based on the current scenario.\n**Context:** ${context}\n**Your Trash Talk (one witty sentence):**`;
                 } else {
-                    // --- MODIFICATION: Simplified main prompt for brevity ---
-                    fullPrompt = `**Persona:** You are Neuron AI, a brilliant and witty fantasy football co-pilot.
+                    fullPrompt = `**Persona:** You are Neuron AI, a brilliant, witty, and CONCISE fantasy football co-pilot.
                     
-                    **Rules of Engagement:**
-                    1.  **Lead with Actionable Advice:** Start with a clear recommendation.
-                    2.  **Justify Briefly:** Mention which agent gave the key insight.
-                    3.  **Tailor to Risk:** The user's risk profile is "${userRiskProfile}". Your recommendation *must* align with this.
-                    4.  **BE CONCISE:** Keep your entire response to a maximum of 2-3 sentences.
+                    **Rules:**
+                    1.  **Actionable Advice First:** Start with a clear recommendation.
+                    2.  **Brief Justification:** Mention the agent source.
+                    3.  **Tailor to Risk:** User's risk is "${userRiskProfile}". Align with it.
+                    4.  **BE CONCISE:** Max 2-3 sentences.
                     
-                    **Current Scenario Context:**
-                    ---
-                    ${context}
-                    ---
-                    
-                    **User's Request:** "${interactionText}"
-
+                    **Context:** ${context}
+                    **User Request:** "${interactionText}"
                     **Your Response (Max 3 sentences):**
                 `;
                 }
@@ -821,21 +853,19 @@
                     setMessages([...newMessages, modelMessage]);
                 } catch (error) {
                     console.error("API Error:", error);
-                    const errorMessage = { role: 'model', text: `Error: ${error.message}. Could not connect to the AI engine.`, id: Date.now() + 1, feedback: null };
+                    const errorMessage = { role: 'model', text: `Error: ${error.message}.`, id: Date.now() + 1, feedback: null };
                     setMessages([...newMessages, errorMessage]);
                 } finally {
                     setIsTyping(false);
                 }
             };
             
-            // --- FEEDBACK HANDLERS ---
             const handleFeedback = (messageId, feedbackType) => {
                 setMessages(prevMessages =>
                     prevMessages.map(msg =>
                         msg.id === messageId ? { ...msg, feedback: feedbackType } : msg
                     )
                 );
-                console.log(`Feedback received for message ID ${messageId}: ${feedbackType}. In a real app, send this to a backend.`);
             };
 
             const handleHuddleFeedback = (messageId, feedbackType) => {
@@ -844,12 +874,11 @@
                         msg.id === messageId ? { ...msg, feedback: feedbackType } : msg
                     )
                 );
-                console.log(`Feedback received for huddle message ID ${messageId}: ${feedbackType}. In a real app, send this to a backend.`);
             };
 
 
             const handleGenerateTrashTalk = () => {
-                const trashTalkPrompt = "Generate a witty, one-line trash talk message I can send to my fantasy football league opponent this week, based on the current scenario.";
+                const trashTalkPrompt = "Generate a witty, one-line trash talk message for my opponent.";
                 handleInteraction(trashTalkPrompt, true, true);
             };
 
@@ -908,10 +937,12 @@
 
                     <HuddleModal 
                         isOpen={huddleActive}
-                        onClose={() => setHuddleActive(false)}
+                        onClose={() => { setHuddleActive(false); setHuddleVerdict(null); }}
                         messages={huddleMessages}
                         isTyping={huddleTyping}
                         onFeedback={handleHuddleFeedback}
+                        verdict={huddleVerdict}
+                        onVerdictAction={handleVerdictAction}
                     />
                 </div>
             );
